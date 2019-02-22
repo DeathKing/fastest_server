@@ -19,7 +19,7 @@ module FastestServer
 
     def watch
       refresh until @jobs.empty? && @workers.all?(&:done?)
-      1.times { refresh }
+      2.times { refresh }
     end
 
     def refresh

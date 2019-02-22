@@ -18,7 +18,7 @@ module FastestServer
       Ping.set_count(Integer(s))
     end
     option ["-v", "--verbose"], :flag, "show more useful information", default: false
-    option ["-j", "--job"], "N", "maximum parallel ping jobs", default: 4 do |s|
+    option ["-j", "--job"], "N", "maximum parallel ping jobs", default: 8 do |s|
       [[1, Integer(s)].max, 12].min
     end
     option "--version", :flag, "show version" do
