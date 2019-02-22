@@ -8,15 +8,17 @@ Find the fastest server via ping.
 
 ## Usage
 
-The most basic usage is very simple
+The most basic usage is very simple, you may type `fastest` with a sequence of servers:
 
-    $ fastest servers ...
+    $ fastest 5.153.63.162 159.8.223.72 169.38.84.49 169.46.49.132 23.246.195.8
+    (after a while)
+    23.246.195.8
     
-There are some options available, considered following command:
+And there're some options available, considered following command:
 
     $ fastest --file list --count 3 --job 10 --verbose 169.61.108.35
 
-<div style="text-align:center"><img src ="img/ping.gif" /></div>
+<p align="center"><img src ="img/ping.gif" /></p>
 
 Where,
 
