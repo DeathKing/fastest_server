@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'fastest_server'
+
+FastestServer::FastestCommand.run
