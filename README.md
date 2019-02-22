@@ -8,7 +8,7 @@ Find the fastest server via ping.
 
 ## Usage
 
-The most basic usage is very simple, you may type `fastest` with a sequence of servers:
+The most basic usage is very simple, you may type `fastest` with a sequence of servers[1]:
 
     $ fastest 5.153.63.162 159.8.223.72 169.38.84.49 169.46.49.132 23.246.195.8
     (after a while)
@@ -29,6 +29,11 @@ Where,
 server will be displayed on the screen.
 
 Noticed that, you can also provide additional servers as parameters, even a `-f` or `--file` option has been set.
+
+## Disclaim
+
+[1] The ip address all come from [lifesize](https://www.lifesize.com/en/app-help/admin/get-started/ip-address-list) 
+for test purpose only.
 
 ## Contributing
 
