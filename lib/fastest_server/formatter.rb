@@ -18,7 +18,7 @@ module FastestServer
     def display!(verbose)
       sort!
       puts formatted! if verbose
-      puts @stats.first[:target]
+      puts @stats.first[:server]
     end
 
     private
@@ -29,8 +29,8 @@ module FastestServer
 
     # ensure both s1 and s2 are valid hash
     def compare(s1, s2)
-      return 1 unless s1[:status] == 0
-      return -1 unless s2[:status] == 0
+      return -1 unless s1[:status] == 0
+      return 1 unless s2[:status] == 0
       if almost_same?(s1[:avg], s2[:avg], 15) &&
           almost_same?(s1[:stddev], s2[:stddev], 10)
         s1[:loss] <=> s2[:loss]

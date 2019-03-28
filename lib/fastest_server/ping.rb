@@ -16,13 +16,13 @@ module FastestServer
       private
 
       def get_pinger
-        @pinger ||= if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM)
-                      WindowsPing
-                    elsif (/darwin/ =~ RUBY_PLATFORM)
-                      UnixPing
-                    elsif
-                      LinuxPing
-                    end
+        if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM)
+          WindowsPing
+        elsif (/darwin/ =~ RUBY_PLATFORM)
+          DarwinPing
+        elsif
+          LinuxPing
+        end
       end
     end
 
@@ -31,19 +31,23 @@ module FastestServer
     end
 
     def perform
-      raise NotImplementedError
+      raise NotImplementedError, "Subclass must implement perform method."
     end
 
+    def parsed(**arguments)
+      {ip: @server, server: @server, site: @server, status: 0,
+       max: 0.0, min: 0.0, avg: 0.0, stddev: 0.0}.merge(arguments)
+    end
   end
 
   class WindowsPing < Ping
   end
 
-  class UnixPing < Ping
+  class DarwinPing < Ping
 
     REGEX_PING = /PING.*/
     REGEX_FILTER = /\(|\)|:/
-    REGEX_LOSS = /(\d*.\d*)% packet loss/
+    REGEX_LOSS = /(?<loss>\d*\.\d*)% packet loss/
     REGEX_STAT = /(?<min>\d*.\d*)\/(?<avg>\d*.\d*)\/(?<max>\d*.\d*)\/(?<stddev>\d*.\d*) ms/
 
     # ping and parse the result
@@ -53,30 +57,21 @@ module FastestServer
       status = $?
 
       # if we cannot find a valid information line, just return nil
-      return useless_server unless result.match(REGEX_PING)
+      return parsed(status: status) unless result.match(REGEX_PING)
       _, site, ip, _ = $&.split(" ")
       ip.gsub!(REGEX_FILTER, "")
 
-      base = useless_server(status)
-
-      return base.merge(ip: ip) unless status == 0
+      return parsed(status: status, ip: ip, site: site) unless status == 0
 
       stat = result.match(REGEX_STAT)
-      return base.merge({
-          ip: ip,
-          site: site,
-          loss: result.match(REGEX_LOSS)[0].to_f,
-          max: stat["max"].to_f,
-          min: stat["min"].to_f,
-          avg: stat["avg"].to_f,
-          stddev: stat["stddev"].to_f})
+      parsed(ip: ip,
+             site: site,
+             loss: result.match(REGEX_LOSS)[0].to_f,
+             max: stat["max"].to_f,
+             min: stat["min"].to_f,
+             avg: stat["avg"].to_f,
+             stddev: stat["stddev"].to_f)
     end
 
-    private
-
-    def useless_server(status=-1)
-      {site: @server, ip: @server, target: @server, status: status,
-       loss: 100, max: 0, min: 0, avg: 0, stddev: 0 }
-    end
   end
 end

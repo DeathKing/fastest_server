@@ -1,7 +1,7 @@
 module FastestServer
   class Fastest
     def initialize(targets, max, verbose)
-      @max = max
+      @max = [max, targets.size].min
       @jobs = targets
       @verbose = verbose
       @checkbook = {}

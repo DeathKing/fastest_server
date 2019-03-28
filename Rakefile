@@ -6,5 +6,5 @@ RSpec::Core::RakeTask.new(:spec)
 task :default => :spec
 
 task :console do
-  exec "irb -r mygem -I ./lib"
+  exec "irb -r fastest_server -I ./lib"
 end
