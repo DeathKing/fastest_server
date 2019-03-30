@@ -9,7 +9,7 @@ module FastestServer
 
     def formatted!
       return @formatted if @formatted
-      header = header_format % ["Site", "IP", "Average", "Stddev", "Loss"]
+      header = header_format % ["Site", "IP", "Average", "Stddev", "Loss", "Status"]
       rows = [header, "-" * header.length]
       rows += @stats.map {|stat| format_row(stat)}
       @formatted = rows.join("\n")
@@ -29,8 +29,8 @@ module FastestServer
 
     # ensure both s1 and s2 are valid hash
     def compare(s1, s2)
-      return -1 unless s1[:status] == 0
-      return 1 unless s2[:status] == 0
+      return 1 unless s1[:status] == 0
+      return -1 unless s2[:status] == 0
       if almost_same?(s1[:avg], s2[:avg], 15) &&
           almost_same?(s1[:stddev], s2[:stddev], 10)
         s1[:loss] <=> s2[:loss]
@@ -46,19 +46,16 @@ module FastestServer
     end
 
     def header_format
-      "%#{@site_max_width}s   %-16s%8s  %6s   %6s"
+      "%#{@site_max_width}s   %-16s%8s  %6s   %6s  %6s"
     end
 
     def row_format
-      "%#{@site_max_width}s  %16s %8.2f  %6.2f  %6.2f%s"
+      "%#{@site_max_width}s  %16s %8.2f  %6.2f  %6.2f%s  %6d"
     end
 
     def format_row stat
-      row_format % [stat[:site], format_ip(stat[:ip]), stat[:avg], stat[:stddev], stat[:loss], '%']
-    end
-
-    def format_ip ip
-      "%-3d.%-3d.%-3d.%-3d" % ip.split(".")
+      row_format % [stat[:site], stat[:ip], stat[:avg],
+                    stat[:stddev], stat[:loss], '%', stat[:status]]
     end
 
   end
