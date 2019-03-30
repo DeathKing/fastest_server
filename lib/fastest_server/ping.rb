@@ -28,8 +28,36 @@ module FastestServer
       @server = server
     end
 
+    def execute_ping_command
+      raise NotImplementedError, "Subclass must implement execute_ping_command method."
+    end
+
+    # ping and parse the result
     def perform
-      raise NotImplementedError, "Subclass must implement perform method."
+      result, status = execute_ping_command
+
+      # we only process `successful` ping.
+      return parsed(status: status) unless status == 0
+
+      _, site, ip, _ = result.match(regex_ping)[0].split(" ")
+      ip.gsub!(regex_filter, "")
+      loss = result.match(regex_loss) ? $&.to_f : 100
+
+      if stat = result.match(regex_stat)
+        parsed(ip: ip, site: site, loss: loss,
+              max: stat["max"].to_f, min: stat["min"].to_f,
+              avg: stat["avg"].to_f, stddev: stat["stddev"]&.to_f || 0.0)
+      else
+        parsed(ip: ip, site: site, loss: loss, status: status)
+      end
+    end
+
+    def method_missing(name, *args)
+      if name =~ /regex_/
+        self.class.const_get(name.upcase)
+      else
+        super
+      end
     end
 
     # From MacOX `ping` manual
@@ -53,26 +81,12 @@ module FastestServer
     REGEX_PING = /Pinging.*/
     REGEX_FILTER = /\[|\]/
     REGEX_LOSS = /\(\d*% loss\)/
-    REGEX_STAT = /Minimum = (?<min>\d+)ms, Maximum = (?<max>\d+)ms, Average = (?<avg>\d+)ms/
+    REGEX_STAT = /Minimum = (?<min>\d+)ms, Maximum = (?<max>\d+)ms, Average = (?<avg>\d+)ms(?<stddev>)/
 
-    def perform
+    def execute_ping_command
       result = `chcp 437 && ping -n #{Ping.get_count} #@server`
       status = $?
-
-      return parsed(status: status) unless result.match(REGEX_PING)
-
-      _, site, ip, _ = $&.split(" ")
-      ip.gsub!(REGEX_FILTER, "")
-      return parsed(status: status, ip: ip, site: site) unless status == 0
-
-      stat = result.match(REGEX_STAT)
-      parsed(ip: ip,
-             site: site,
-             loss: result.match(REGEX_LOSS)[0].to_f,
-             max: stat["max"].to_i,
-             min: stat["min"].to_i,
-             avg: stat["avg"].to_i,
-             stddev: 0)
+      [result, $?]
     end
   end
 
@@ -83,27 +97,10 @@ module FastestServer
     REGEX_LOSS = /(?<loss>\d*)% packet loss/
     REGEX_STAT = /(?<min>\d*.\d*)\/(?<avg>\d*.\d*)\/(?<max>\d*.\d*)\/(?<stddev>\d*.\d*) ms/
 
-    # ping and parse the result
-    def perform
+    def execute_ping_command
       result = `ping -c #{Ping.get_count} -q #@server`
       status = $?
-
-      # we only process `successful` ping.
-      return parsed(status: status) unless status == 0
-
-      _, site, ip, _ = result.match(REGEX_PING)[0].split(" ")
-      ip.gsub!(REGEX_FILTER, "")
-
-      loss = result.match(REGEX_LOSS) ? $&.to_f : 100
-
-      if stat = result.match(REGEX_STAT)
-        parsed(ip: ip, site: site, loss: loss,
-               max: stat["max"].to_f, min: stat["min"].to_f,
-               avg: stat["avg"].to_f, stddev: stat["stddev"].to_f)
-      else
-        parsed(ip: ip, site: site, loss: loss, status: status)
-      end
+      [result, $?]
     end
-
   end
 end
